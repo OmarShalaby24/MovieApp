@@ -59,13 +59,14 @@ const HomeScreen: React.FC<Props> =  ({navigation}) => {
             <View style={{flexDirection: 'row', alignItems: 'center'}} >
                 <Text style={styles.rate}>{Math.floor(item.vote_average/10*100)}%</Text>
                 <Rating
-                        type='star'
-                        tintColor='#0a0f26'
-                        imageSize={15}
-                        startingValue={item.vote_average/2}
-                        ratingBackgroundColor='#0a0f26'
-                        readonly={true}
-                    />
+                    type='custom'
+                    tintColor='#0a0f26'
+                    imageSize={15}
+                    startingValue={item.vote_average/2}
+                    ratingBackgroundColor='#0a0f26'
+                    ratingColor='#33f'
+                    readonly={true}
+                />
             </View>
             <Text style={styles.title}>{item.title}</Text>
         </TouchableOpacity>

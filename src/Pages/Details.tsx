@@ -58,11 +58,12 @@ const DetailsScreen: React.FC<Props> = ({navigation, route}) => {
                     <View style={{flexDirection: 'row', alignItems: 'center', flexBasis: 'auto'}}>
                         <Text style={styles.rate}>{Math.floor(movie.vote_average/10*100)}%</Text>
                         <Rating
-                            type='star'
+                            type='custom'
                             tintColor='#0a0f26'
                             imageSize={25}
                             startingValue={movie.vote_average/2}
                             ratingBackgroundColor='#0a0f26'
+                            ratingColor='#33f'
                             readonly={true}
                         />
                     </View>
