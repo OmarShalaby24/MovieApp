@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Button, FlatList, Image, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Props {
     navigation: NavigationProp<ParamListBase>;
@@ -10,24 +9,34 @@ interface Props {
 interface Movie {
     id: string;
     title: string;
+    poster_path: string;
+    vote_average: number;
 }
- const Data: Movie[] = [
-    {
-        id: 'm1',
-        title: 'movie 1',
+let pageNo = 1;
+const accessToken = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMGE4Njg5NDhlMWY4Y2NiOWM5NTUyOTQ4ZDM3YTdkYyIsInN1YiI6IjY1Y2Y0YzBkNjBjNzUxMDE2MjY5MDk5OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oH0bCtZ4lCduafIf03FEVPKqRAl0zlrSL6ku1DyRCwk';
+let apiUrl = `https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${pageNo}`;
+const options = {
+    method: 'GET',
+    headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        'x-api-key': '10a868948e1f8ccb9c9552948d37a7dc',
+        Authorization: `Bearer ${accessToken}`
     },
-    {
-        id: 'm2',
-        title: 'movie 2',
-    },{
-        id: 'm3',
-        title: 'movie 3',
-    },
- ]
+}
+
 const HomeScreen: React.FC<Props> =  ({navigation}) => {
     const [moviesList, setMoviesList] = useState<Movie[]>([]);
     const SetMovies = () => {
-        setMoviesList(Data);
+        fetch(apiUrl, options)
+            .then(res => res.json())
+            .then(result => {
+                // console.log(result.results.length);
+                // console.log(JSON.stringify(result.results))
+                setMoviesList(result.results);
+            })
+            .catch(err => console.error('error:' + err));
+        console.log(moviesList);
     }
     useEffect(() => {
         SetMovies();
@@ -35,10 +44,11 @@ const HomeScreen: React.FC<Props> =  ({navigation}) => {
     const renderItem = ({ item }: { item: Movie }) => (
         <TouchableOpacity style={styles.movieCard}>
             <Image
-                source={{uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg`}}
+                source={{uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/${item.poster_path}`}}
                 style={styles.cardPoster}
             />
             <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.title}>{item.vote_average}</Text>
         </TouchableOpacity>
       );
     return(
@@ -91,13 +101,14 @@ const styles = StyleSheet.create({
         borderRadius: 9,
     },
     cardContainer: {
-        height: 300,
+        height: 260,
     },
     searchBar: {
         backgroundColor:'#e0e0e0',
         borderRadius: 10,
         paddingHorizontal: 10,
         marginHorizontal: 20,
+        
         height: 40,
     },
 })
