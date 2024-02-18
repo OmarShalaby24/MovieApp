@@ -1,27 +1,39 @@
 import * as React from 'react';
 import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import Home from './src/Pages/Home';
 import Details from './src/Pages/Details'
 
-const Stack = createNativeStackNavigator();
+type Movie = {
+  id: string,
+  title: string,
+  rate: number
+}
+
+type RootStackParamList = {
+  Home: undefined,
+  Details: Movie,
+}
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
   return(
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
+      <RootStack.Navigator>
+        <RootStack.Screen
           name = "Home"
           component={Home}
           options={{headerShown: false, title: "Movie List"}}
         />
-        <Stack.Screen
-          name='Details'
+        <RootStack.Screen
+          name = 'Details'
           component={Details}
+          options={{title: "", headerTransparent:true, headerTitleStyle: {color: '#fff'}, headerTintColor:'#fff'}}
         />
-      </Stack.Navigator>
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 };

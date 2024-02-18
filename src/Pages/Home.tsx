@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { Button, FlatList, Image, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-interface Props {
-    navigation: NavigationProp<ParamListBase>;
+type RootStackParamList = {
+    Home: {x: string};
+    Details: {movie: Movie};
+};
+
+type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+type Props = {
+    navigation: HomeNavigationProp;
 }
 
 interface Movie {
@@ -36,13 +44,13 @@ const HomeScreen: React.FC<Props> =  ({navigation}) => {
                 setMoviesList(result.results);
             })
             .catch(err => console.error('error:' + err));
-        console.log(moviesList);
+        // console.log(moviesList);
     }
     useEffect(() => {
         SetMovies();
     },[]);
     const renderItem = ({ item }: { item: Movie }) => (
-        <TouchableOpacity style={styles.movieCard}>
+        <TouchableOpacity style={styles.movieCard} onPress={() => navigation.navigate('Details', {movie: item})}>
             <Image
                 source={{uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/${item.poster_path}`}}
                 style={styles.cardPoster}
@@ -74,7 +82,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingTop: 20,
-        backgroundColor: '#050f24'
+        backgroundColor: '#0a0f26'
     },
     item: {
         backgroundColor: 'red',
@@ -94,7 +102,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
     },
     cardPoster: {
-        borderWidth: 1,
+        // borderWidth: 1,
         borderColor:'white',
         height: 200,
         width: 150,
