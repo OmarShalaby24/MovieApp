@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Button, FlatList, Image, Platform, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Rating } from 'react-native-ratings';
 
 type RootStackParamList = {
     Home: {x: string};
@@ -55,8 +56,18 @@ const HomeScreen: React.FC<Props> =  ({navigation}) => {
                 source={{uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/${item.poster_path}`}}
                 style={styles.cardPoster}
             />
+            <View style={{flexDirection: 'row', alignItems: 'center'}} >
+                <Text style={styles.rate}>{Math.floor(item.vote_average/10*100)}%</Text>
+                <Rating
+                        type='star'
+                        tintColor='#0a0f26'
+                        imageSize={15}
+                        startingValue={item.vote_average/2}
+                        ratingBackgroundColor='#0a0f26'
+                        readonly={true}
+                    />
+            </View>
             <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.title}>{item.vote_average}</Text>
         </TouchableOpacity>
       );
     return(
@@ -92,7 +103,7 @@ const styles = StyleSheet.create({
     },
     title: {
         padding: 5,
-        fontSize: 12,
+        fontSize: 14,
         color: 'white',
     },
     movieCard: {
@@ -119,4 +130,9 @@ const styles = StyleSheet.create({
         
         height: 40,
     },
+    rate: {
+        fontSize: 12,
+        color: 'white',
+        padding: 5,
+    }
 })

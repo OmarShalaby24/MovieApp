@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Image, ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NavigationProp, ParamListBase, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Rating } from 'react-native-ratings';
+
 
 type RootStackParamList = {
     Home: {x: string};
@@ -26,7 +28,7 @@ interface Movie {
     release_date: string;
 }
 const DetailsScreen: React.FC<Props> = ({navigation, route}) => {
-    console.log(route.params.movie)
+    // console.log(route.params.movie)
     const { movie } = route.params;
     useEffect(() => {
         // navigation.setOptions({title: movie.title});
@@ -52,6 +54,19 @@ const DetailsScreen: React.FC<Props> = ({navigation, route}) => {
                         resizeMode='cover'
                     />
                     <Text style={styles.Title}>{movie.title}</Text>
+                    <Text style={styles.date}>{movie.release_date}</Text>
+                    <View style={{flexDirection: 'row', alignItems: 'center', flexBasis: 'auto'}}>
+                        <Text style={styles.rate}>{Math.floor(movie.vote_average/10*100)}%</Text>
+                        <Rating
+                            type='star'
+                            tintColor='#0a0f26'
+                            imageSize={25}
+                            startingValue={movie.vote_average/2}
+                            ratingBackgroundColor='#0a0f26'
+                            readonly={true}
+                        />
+                    </View>
+                    <Text style={styles.overView}>{movie.overview}</Text>
                 </View>
             </View>
         </ScrollView>
@@ -74,7 +89,7 @@ const styles = StyleSheet.create({
     movieBackDrop: {
         width: '100%',
         // height: '100%'
-        aspectRatio: 10/9,
+        aspectRatio: 12/9,
     },
     card: {
         // flexDirection: 'row',
@@ -90,11 +105,21 @@ const styles = StyleSheet.create({
     },
     Title: {
         color: 'white',
-        fontSize: 32,
+        fontSize: 26,
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    overView: {
+        color: "#aaa"
+    },
+    rate: {
+        color: 'white',
+    },
+    date: {
+        fontSize: 11,
+        color: '#fff'
     },
 
 
