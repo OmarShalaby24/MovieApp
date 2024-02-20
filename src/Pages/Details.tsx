@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { Image, ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NavigationProp, ParamListBase, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Rating } from 'react-native-ratings';
+import { Rating } from 'react-native-elements';
+// import { Rating } from 'react-native-ratings';
 
 
 type RootStackParamList = {
@@ -59,11 +60,11 @@ const DetailsScreen: React.FC<Props> = ({navigation, route}) => {
                         <Text style={styles.rate}>{Math.floor(movie.vote_average/10*100)}%</Text>
                         <Rating
                             type='custom'
-                            tintColor='#0a0f26'
+                            tintColor='#0e1824'
                             imageSize={25}
                             startingValue={movie.vote_average/2}
-                            ratingBackgroundColor='#0a0f26'
-                            ratingColor='#33f'
+                            ratingBackgroundColor='#0e1824'
+                            ratingColor='#fe6c30'
                             readonly={true}
                         />
                     </View>
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         // paddingTop: 20,
-        backgroundColor: '#0a0f26'
+        backgroundColor: '#0e1824'
     },
     ImageContainer: {
         flex: 1,
@@ -113,10 +114,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     overView: {
-        color: "#aaa"
+        color: "#c2c9d5"
     },
     rate: {
-        color: 'white',
+        color: '#fe6c30',
     },
     date: {
         fontSize: 11,
