@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { FlatList, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
+import { FlatList, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Rating } from 'react-native-elements';
-import SearchBar from '../Components/SearchBarComponent'
 import axios from 'axios';
+import _ from "lodash";
+
 // import { Rating } from 'react-native-ratings';
 
 
@@ -20,47 +21,57 @@ type Props = {
 }
 
 interface Movie {
-    id: string;
-    title: string;
-    poster_path: string;
-    vote_average: number;
+    id: number,
+    backdrop_path: string,
+    title: string,
+    vote_average: number,
+    release_date: string,
+    poster_path: string,
+    overview: string
 }
-// let pageNo = 1;
+
 const accessToken = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxMGE4Njg5NDhlMWY4Y2NiOWM5NTUyOTQ4ZDM3YTdkYyIsInN1YiI6IjY1Y2Y0YzBkNjBjNzUxMDE2MjY5MDk5OCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oH0bCtZ4lCduafIf03FEVPKqRAl0zlrSL6ku1DyRCwk';
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
     const [moviesList, setMoviesList] = useState<Movie[]>([]);
-    let [page, setPage] = useState(1);
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
-    const fetchMovies = async () => {
-        setLoading(true);
-        await fetch(`https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${page}`, {
-            method: 'GET',
-            headers: {
-                accept: 'application/json',
-                'Content-Type': 'application/json',
-                'x-api-key': '10a868948e1f8ccb9c9552948d37a7dc',
-                Authorization: `Bearer ${accessToken}`
-            },
-        })
-            .then(res => res.json())
-            .then(result => {
-                // console.log(result.results.length);
-                // console.log(JSON.stringify(result.results))
-                setMoviesList(data => [...data, ...result.results]);
-                setPage(p => p +1);
-            })
-            .catch(err => console.error('error:' + err));
-        setLoading(false);
-        // console.log(moviesList);
-    }
-    const handleLoadMoreMovies = () => {
-        fetchMovies();
-        console.log('fetching page ',page);
-    }
+    const [searchQuery, setSearchQuery] = useState('');
+
     useEffect(() => {
+        setLoading(true);
         fetchMovies();
     }, []);
+
+    const fetchMovies = async () => {
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${page}`, {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'x-api-key': '10a868948e1f8ccb9c9552948d37a7dc',
+                    Authorization: `Bearer ${accessToken}`
+                },
+            })
+            setPage(p => p + 1);
+            const json = await response.json();
+            // setMoviesList(old => _.union(json.results));
+            setMoviesList(old => [...old, ...json.results]);
+            // console.log(moviesList.length)
+            setLoading(false);
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+        }
+    }
+    const [lastVisitedPage, setLastVisitedPage] = useState(1);
+    const handleLoadMoreMovies = () => {
+        if (lastVisitedPage == page) return;
+        fetchMovies();
+        setLastVisitedPage(page);
+        // console.log('fetching page ', page);
+    }
 
     const renderItem = ({ item }: { item: Movie }) => (
         <TouchableOpacity style={styles.movieCard} onPress={() => navigation.navigate('Details', { movie: item })}>
@@ -83,47 +94,128 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.title}>{item.title}</Text>
         </TouchableOpacity>
     );
-    return(
+    const [keyword, setKeyword] = useState('');
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchResult, setSearchResult] = useState<Movie[]>([]);
+    const [showSearch, setShowSearch] = useState(false);
+    const searchForMovie = async () => {
+        setSearchLoading(true);
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${keyword}&include_adult=false&language=en-US&page=1`, {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'x-api-key': '10a868948e1f8ccb9c9552948d37a7dc',
+                    Authorization: `Bearer ${accessToken}`
+                },
+            });
+            const json = await response.json();
+            setSearchResult(json.results);
+            setSearchLoading(false);
+        } catch (error) {
+            console.error(error);
+            setSearchLoading(false);
+        }
+    }
+    const handleSearch = (query: string) => {
+        setKeyword(query);
+        searchForMovie();
+    }
+
+    const renderSearchCard = ({ item }: { item: Movie }) => {
+        return (
+            <TouchableOpacity style={styles.searchCardContainer} onPress={() => navigation.navigate('Details', { movie: item })} >
+                <Image style={styles.poster} source={{ uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/${item.poster_path}` }} />
+                <View style={{ marginHorizontal: 10 }}>
+                    <Text style={styles.Title}>{item.title}</Text>
+                    <Text style={styles.rate}>{item.vote_average}</Text>
+                </View>
+            </TouchableOpacity>
+        )
+    }
+    const searchRef = useRef<TextInput>(null);
+    const handleFocus = () => {
+        if (searchRef.current) {
+            setShowSearch(true);
+            searchRef.current.focus();
+            setShowCancelSearchButton(true);
+        }
+    }
+    const handleBlur = () => {
+        if (searchRef.current) {
+            setShowSearch(false);
+            searchRef.current.blur();
+            Keyboard.dismiss();
+        }
+    }
+    const [showCancelSearchButton ,setShowCancelSearchButton] = useState(false);
+    const handelCancel = () => {
+        setShowCancelSearchButton(false);
+        setKeyword('');
+        setSearchResult([]);
+        handleBlur();
+    }
+    return (
         <SafeAreaView style={styles.container}>
-            <View style={{ paddingBottom: 20 }}>
+
+            <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                 <TextInput
-                    style={styles.searchBar}
+                    ref={searchRef}
+                    onFocus={handleFocus}
+                    style={[styles.searchBar, {flex: 1}]}
                     placeholder='Search'
                     clearButtonMode='while-editing'
                     cursorColor={"#fe6c30"}
                     autoCapitalize='none'
                     autoCorrect={false}
-                    // value={searchQuery}
-                    placeholderTextColor={'#fbfcfb'}
-                // onChangeText={(query) => updateSearchBar(query)}
-                />
+                    value={keyword}
+                    placeholderTextColor={'#e7d8c9'}
+                    onChangeText={(query) => handleSearch(query)}
+                />{showCancelSearchButton?
+                <TouchableOpacity style={{position: 'absolute', right: 30, top: 9, backgroundColor: '#0e1824', width: 20, height: 20, alignItems: 'center',borderRadius: 10, paddingTop: -1}} onPress={handelCancel}>
+                    <Text style={{color: '#1f2c3c'}}>ⓧ</Text>
+                </TouchableOpacity>
+                : null
+                }
             </View>
-            <View>
-                {loading && moviesList.length==0 ? (
-                    <View style={[{ justifyContent: "center", alignItems: "center", height: 50}]}>
-                        <ActivityIndicator size={'large'} color={'#fe6c30'} />
-                    </View>
-                ) :null}
-                <View style={styles.cardContainer}>
+            {showSearch ?
+                <SafeAreaView>
                     <FlatList
-                        data={moviesList}
-                        focusable={true}
-                        horizontal={true}
-                        renderItem={renderItem}
-                        keyExtractor={item => item.id}
-                        showsHorizontalScrollIndicator={false}
-                        // nestedScrollEnabled={true}
-                        onEndReached={() => { handleLoadMoreMovies() }}
-                        onEndReachedThreshold={0.5}
-                        ListFooterComponent={loading?null:
-                            <View style={{paddingVertical: 100,}}>
-                                <ActivityIndicator size={'large'} color={'#fe6c30'}/>
-                            </View>
-                    }
+                        data={searchResult}
+                        renderItem={renderSearchCard}
+                        keyExtractor={item => item.id.toString()}
                     />
-                    
+                </SafeAreaView>
+                :
+                <View>
+                    {loading && moviesList.length == 0 ? (
+                        <View style={[{ justifyContent: "center", alignItems: "center", height: 50 }]}>
+                            <ActivityIndicator size={'large'} color={'#fe6c30'} />
+                        </View>
+                    ) : null}
+                    <View style={styles.cardContainer}>
+                        <FlatList
+                            data={moviesList}
+                            focusable={true}
+                            horizontal={true}
+                            renderItem={renderItem}
+                            keyExtractor={item => item.id.toString()}
+                            showsHorizontalScrollIndicator={false}
+                            onEndReached={handleLoadMoreMovies}
+                            onEndReachedThreshold={0.1}
+                            initialNumToRender={20}
+                            maxToRenderPerBatch={20}
+                            ListFooterComponent={!loading ?
+                                <View style={[{ justifyContent: "center", alignItems: "center", height: 50, marginVertical: 80 }]}>
+                                    <ActivityIndicator size={'large'} color={'#fe6c30'} />
+                                </View>
+                                : null}
+                        />
+
+                    </View>
                 </View>
-            </View>
+            }
         </SafeAreaView>
     );
 }
@@ -133,7 +225,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingTop: 20,
-        backgroundColor: '#0e1824'
+        backgroundColor: '#0e1824',
+        paddingHorizontal: 10
     },
     item: {
         backgroundColor: 'red',
@@ -168,14 +261,33 @@ const styles = StyleSheet.create({
         backgroundColor: '#1f2c3c',
         borderRadius: 8,
         borderColor: '#e7d8c9',
-        // borderWidth: 1,
+        borderWidth: 0,
         paddingHorizontal: 10,
+        // paddingVertical: 5,
         marginHorizontal: 20,
         height: 40,
+        // width: '100%',
+        color: "#fbfcfb"
     },
     rate: {
         fontSize: 12,
-        color: '#fbfcfb',
+        color: '#e7d8c9',
         padding: 5,
-    }
+    },
+    poster: {
+        width: 50,
+        aspectRatio: 12 / 16,
+        borderRadius: 8,
+
+    },
+    Title: {
+        fontSize: 18,
+        color: '#fbfcfb'
+    },
+    searchCardContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 10,
+        marginTop: 10,
+    },
 })
