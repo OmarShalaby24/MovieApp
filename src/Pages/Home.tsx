@@ -1,16 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { FlatList, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native'
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Rating } from 'react-native-elements';
-import axios from 'axios';
 import _ from "lodash";
-
-// import { Rating } from 'react-native-ratings';
-
+import { MovieCard, MovieListItem} from '../Components/MovieCard';
 
 type RootStackParamList = {
-    Home: { x: string };
+    Home: { movie: Movie };
     Details: { movie: Movie };
 };
 
@@ -36,7 +31,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     const [moviesList, setMoviesList] = useState<Movie[]>([]);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         setLoading(true);
@@ -56,9 +50,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             })
             setPage(p => p + 1);
             const json = await response.json();
-            // setMoviesList(old => _.union(json.results));
             setMoviesList(old => [...old, ...json.results]);
-            // console.log(moviesList.length)
             setLoading(false);
         } catch (error) {
             console.error(error);
@@ -70,30 +62,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         if (lastVisitedPage == page) return;
         fetchMovies();
         setLastVisitedPage(page);
-        // console.log('fetching page ', page);
     }
-
-    const renderItem = ({ item }: { item: Movie }) => (
-        <TouchableOpacity style={styles.movieCard} onPress={() => navigation.navigate('Details', { movie: item })}>
-            <Image
-                source={{ uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/${item.poster_path}` }}
-                style={styles.cardPoster}
-            />
-            <View style={{ flexDirection: 'row', alignItems: 'center' }} >
-                <Text style={styles.rate}>{Math.floor(item.vote_average / 10 * 100)}%</Text>
-                <Rating
-                    type='custom'
-                    tintColor='#0e1824'
-                    imageSize={15}
-                    startingValue={item.vote_average / 2}
-                    ratingBackgroundColor='#0e1824'
-                    ratingColor='#fe6c30'
-                    readonly={true}
-                />
-            </View>
-            <Text style={styles.title}>{item.title}</Text>
-        </TouchableOpacity>
-    );
+ 
     const [keyword, setKeyword] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState<Movie[]>([]);
@@ -123,17 +93,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         searchForMovie();
     }
 
-    const renderSearchCard = ({ item }: { item: Movie }) => {
-        return (
-            <TouchableOpacity style={styles.searchCardContainer} onPress={() => navigation.navigate('Details', { movie: item })} >
-                <Image style={styles.poster} source={{ uri: `https://image.tmdb.org/t/p/w300_and_h450_bestv2/${item.poster_path}` }} />
-                <View style={{ marginHorizontal: 10 }}>
-                    <Text style={styles.Title}>{item.title}</Text>
-                    <Text style={styles.rate}>{item.vote_average}</Text>
-                </View>
-            </TouchableOpacity>
-        )
-    }
+
     const searchRef = useRef<TextInput>(null);
     const handleFocus = () => {
         if (searchRef.current) {
@@ -149,21 +109,28 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             Keyboard.dismiss();
         }
     }
-    const [showCancelSearchButton ,setShowCancelSearchButton] = useState(false);
+    const [showCancelSearchButton, setShowCancelSearchButton] = useState(false);
     const handelCancel = () => {
         setShowCancelSearchButton(false);
         setKeyword('');
         setSearchResult([]);
         handleBlur();
     }
+
+    const renderItem = ({ item }: { item: Movie }) => {
+        return <MovieCard movie={item} navigation={navigation}/>
+    }
+    const renderSearchCard = ({ item }: { item: Movie }) => {
+        return <MovieListItem movie={item} navigation={navigation}/> 
+    }
     return (
         <SafeAreaView style={styles.container}>
 
-            <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingBottom: 20 }}>
                 <TextInput
                     ref={searchRef}
                     onFocus={handleFocus}
-                    style={[styles.searchBar, {flex: 1}]}
+                    style={[styles.searchBar, { flex: 1 }]}
                     placeholder='Search'
                     clearButtonMode='while-editing'
                     cursorColor={"#fe6c30"}
@@ -172,11 +139,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                     value={keyword}
                     placeholderTextColor={'#e7d8c9'}
                     onChangeText={(query) => handleSearch(query)}
-                />{showCancelSearchButton?
-                <TouchableOpacity style={{position: 'absolute', right: 30, top: 9, backgroundColor: '#0e1824', width: 20, height: 20, alignItems: 'center',borderRadius: 10, paddingTop: -1}} onPress={handelCancel}>
-                    <Text style={{color: '#1f2c3c'}}>ⓧ</Text>
-                </TouchableOpacity>
-                : null
+                />{showCancelSearchButton ?
+                    <TouchableOpacity style={{ position: 'absolute', right: 30, top: 9, backgroundColor: '#0e1824', width: 20, height: 20, alignItems: 'center', borderRadius: 10, paddingTop: -1 }} onPress={handelCancel}>
+                        <Text style={{ color: '#bfc4cb' }}>ⓧ</Text>
+                    </TouchableOpacity>
+                    : null
                 }
             </View>
             {showSearch ?
@@ -248,7 +215,6 @@ const styles = StyleSheet.create({
         width: 150
     },
     cardPoster: {
-        // borderWidth: 1,
         borderColor: '#e7d8c9',
         height: 220,
         width: 150,
@@ -263,10 +229,8 @@ const styles = StyleSheet.create({
         borderColor: '#e7d8c9',
         borderWidth: 0,
         paddingHorizontal: 10,
-        // paddingVertical: 5,
         marginHorizontal: 20,
         height: 40,
-        // width: '100%',
         color: "#fbfcfb"
     },
     rate: {

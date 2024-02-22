@@ -1,38 +1,34 @@
 import React, { useEffect } from 'react';
-import { Image, ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { NavigationProp, ParamListBase, RouteProp } from '@react-navigation/native';
+import { ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Rating } from 'react-native-elements';
-// import { Rating } from 'react-native-ratings';
-
 
 type RootStackParamList = {
-    Home: {x: string};
+    // Home: {x: string};
     Details: {movie: Movie};
 }
 
 type DetailsRouteProp = RouteProp<RootStackParamList, 'Details'>;
-type DetailsNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Details'>;
+// type DetailsNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Details'>;
 
 interface Props {
     route: DetailsRouteProp;
-    navigation: DetailsNavigationProp;
+    // navigation: DetailsNavigationProp;
 }
 interface Movie {
-    id: string;
-    title: string;
-    original_title: string;
-    poster_path: string;
-    backdrop_path: string;
-    vote_average: number;
-    overview: string;
-    release_date: string;
+    id: number,
+    backdrop_path: string,
+    title: string,
+    vote_average: number,
+    release_date: string,
+    poster_path: string,
+    overview: string
 }
-const DetailsScreen: React.FC<Props> = ({navigation, route}) => {
-    // console.log(route.params.movie)
+
+const DetailsScreen: React.FC<Props> = ({route}) => {
     const { movie } = route.params;
     useEffect(() => {
-        // navigation.setOptions({title: movie.title});
     }, []);
 
     return(
@@ -80,7 +76,6 @@ export default DetailsScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // paddingTop: 20,
         backgroundColor: '#0e1824'
     },
     ImageContainer: {
@@ -90,11 +85,9 @@ const styles = StyleSheet.create({
     },
     movieBackDrop: {
         width: '100%',
-        // height: '100%'
         aspectRatio: 12/9,
     },
     card: {
-        // flexDirection: 'row',
         marginTop: -220,
         padding: 10,
         width: '100%',

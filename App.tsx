@@ -1,20 +1,23 @@
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import Home from './src/Pages/Home';
 import Details from './src/Pages/Details'
 
-type Movie = {
-  id: string,
-  title: string,
-  rate: number
-}
-
 type RootStackParamList = {
-  Home: undefined,
-  Details: Movie,
+  Home: { movie: Movie };
+  Details: { movie: Movie };
+};
+
+interface Movie {
+  id: number,
+  backdrop_path: string,
+  title: string,
+  vote_average: number,
+  release_date: string,
+  poster_path: string,
+  overview: string
 }
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
